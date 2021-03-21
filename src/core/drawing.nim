@@ -19,7 +19,7 @@ func initCamera*(vw, vh: int): Camera =
   result.pos = vec(0, 0)
   result.zoom = 1.0
 
-func toScreen(c: Camera, worldPos: Vector[2]): Vector[2] =
+func toScreen(worldPos: Vector[2], c: Camera): Vector[2] =
   (c.zoom * (worldPos - c.pos)) + vec(c.vw / 2, c.vh / 2)
 
 proc begin*(batch: RenderBatch) =
@@ -31,7 +31,7 @@ proc render*(batch: RenderBatch,
              pos: Vector[2],
              w, h: int,
              rot = 0.0) =
-  let sv = batch.cam.toScreen(pos)
+  let sv = pos.toScreen(batch.cam)
   var dest = rect(sv.x.cint,
                   sv.y.cint,
                   (w.float * batch.cam.zoom).cint,
@@ -44,7 +44,7 @@ proc renderRect*(batch: RenderBatch,
                  pos: Vector[2],
                  w, h: int,
                  rot = 0.0) =
-  let sv = batch.cam.toScreen(pos)
+  let sv = pos.toScreen(batch.cam)
   var dest = rect(sv.x.cint,
                   sv.y.cint,
                   (w.float * batch.cam.zoom).cint,

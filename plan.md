@@ -2,10 +2,10 @@ core:
  - DONE animation
  - particles
  - gui
- - basic types, or are there enough in stdlib?
+ - DONEish basic types, or are there enough in stdlib?
    - points
    - vectors
- - camera
+ - DONEish camera
 
 maybe core
  - collision
