@@ -1,7 +1,8 @@
+import math
 import 
   sdl2, sdl2/image, sdl2/ttf, sequtils
 
-import core / [animation, particles]
+import core / [animation, particles, drawing]
 
 type 
   SDLException = object of Defect
@@ -63,8 +64,8 @@ proc main =
 
   # Game loop, draws each frame
   var quitting = false
-  var x = 20
-  var y = 20
+  var x = 20.0
+  var y = 20.0
   var inputs: Inputs
 
   var sprite = AnimatedSprite[PlayerAnim](spriteSheet: tex)
@@ -78,9 +79,11 @@ proc main =
 
   var ptex = renderer.loadTexture("assets/elf.png")
   var pe = initParticleEmitter(ptex, x = 100.0, y = 100.0, emitDelay = 3.0, particleMaxLife = 10000.0)
+  var cam = initCamera(800, 600)
+  var batch = RenderBatch(renderer: renderer, cam: cam)
 
+  var c = 1
   while not quitting:
-    var dest = rect(x.cint, y.cint, 80.cint, 80.cint)
     var event = defaultEvent
     while pollEvent(event):
       case event.kind
@@ -93,10 +96,10 @@ proc main =
       else:
         discard
 
-    if inputs[Input.Left]: dec x
-    if inputs[Input.Right]: inc x
-    if inputs[Input.Up]: dec y
-    if inputs[Input.Down]: inc y
+    if inputs[Input.Left]: x -= 1
+    if inputs[Input.Right]: x += 1
+    if inputs[Input.Up]: y -= 1
+    if inputs[Input.Down]: y += 1
     if inputs[Input.Quit]: quitting = true
 
     if inputs.anyIt(it):
@@ -104,14 +107,14 @@ proc main =
     else:
       sprite.tick(PlayerAnim.Neutral, 10)
 
+    inc c
     pe.tick(10)
-    pe.x = x.float
-    pe.y = y.float
+    pe.x = x
+    pe.y = y
 
-    renderer.setDrawColor(r = 50, g = 50, b = 50)
-    renderer.clear()
-    pe.render(renderer)
-    var r = sprite.curFrame()
-    renderer.copy(tex, addr r, addr dest)
-    renderer.present()
+    batch.cam.zoom = 1.5 + sin(c / 50)
+    batch.begin()
+    batch.draw(pe)
+    batch.draw(sprite, x, y, 80, 80)
+    batch.renderer.present()
 main()

@@ -1,5 +1,6 @@
-import random, math
+import random
 import sdl2
+import drawing
 
 type
   Particle* = object
@@ -47,7 +48,6 @@ proc tick*(emitter: var ParticleEmitter,
   for i in toDelete:
     emitter.particles.delete(i)
 
-proc render*(emitter: ParticleEmitter, renderer: RendererPtr) =
+proc draw*(batch: RenderBatch, emitter: ParticleEmitter) =
   for p in emitter.particles:
-    var dest = rect(p.x.cint, p.y.cint, 10.cint, 10.cint)
-    renderer.copyEx(emitter.tex, nil, addr dest, p.rot, nil)
+    batch.render(emitter.tex, p.x, p.y, 10, 10, p.rot)
