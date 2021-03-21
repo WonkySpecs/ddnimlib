@@ -34,6 +34,9 @@ func curFrame*(sprite: AnimatedSprite): Rect =
   let frameNum = ((sprite.timer.int mod totFrameTime) / animation.frameDelay).int
   result = animation.frames[frameNum]
 
-proc draw*(batch: RenderBatch, sprite: AnimatedSprite, x, y: float, w, h: int) =
+proc draw*(batch: RenderBatch,
+           sprite: AnimatedSprite,
+           pos: Vector[2],
+           w, h: int) =
   var r = sprite.curFrame
-  batch.renderRect(sprite.spriteSheet, r, x, y, w, h, 0.0)
+  batch.renderRect(sprite.spriteSheet, r, pos, w, h, 0.0)

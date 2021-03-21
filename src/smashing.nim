@@ -64,8 +64,7 @@ proc main =
 
   # Game loop, draws each frame
   var quitting = false
-  var x = 20.0
-  var y = 20.0
+  var pos = vec(50, 50)
   var inputs: Inputs
 
   var sprite = AnimatedSprite[PlayerAnim](spriteSheet: tex)
@@ -78,11 +77,11 @@ proc main =
   sprite.addAnimation(PlayerAnim.Moving, frames, 100)
 
   var ptex = renderer.loadTexture("assets/elf.png")
-  var pe = initParticleEmitter(ptex, x = 100.0, y = 100.0, emitDelay = 3.0, particleMaxLife = 10000.0)
+  var pe = initParticleEmitter(ptex, pos = vec(100, 100), emitDelay = 3.0, particleMaxLife = 10000.0)
   var cam = initCamera(800, 600)
   var batch = RenderBatch(renderer: renderer, cam: cam)
-
   var c = 1
+
   while not quitting:
     var event = defaultEvent
     while pollEvent(event):
@@ -96,10 +95,10 @@ proc main =
       else:
         discard
 
-    if inputs[Input.Left]: x -= 1
-    if inputs[Input.Right]: x += 1
-    if inputs[Input.Up]: y -= 1
-    if inputs[Input.Down]: y += 1
+    if inputs[Input.Left]: pos.x -= 1
+    if inputs[Input.Right]: pos.x += 1
+    if inputs[Input.Up]: pos.y -= 1
+    if inputs[Input.Down]: pos.y += 1
     if inputs[Input.Quit]: quitting = true
 
     if inputs.anyIt(it):
@@ -109,12 +108,11 @@ proc main =
 
     inc c
     pe.tick(10)
-    pe.x = x
-    pe.y = y
+    pe.pos = pos
 
     batch.cam.zoom = 1.5 + sin(c / 50)
     batch.begin()
     batch.draw(pe)
-    batch.draw(sprite, x, y, 80, 80)
+    batch.draw(sprite, pos, 80, 80)
     batch.renderer.present()
 main()

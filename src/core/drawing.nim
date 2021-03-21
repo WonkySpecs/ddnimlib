@@ -6,7 +6,8 @@ export linear
 type
   Camera* = object
     vw, vh: int
-    x*, y*, zoom*: float
+    pos*: Vector[2]
+    zoom*: float
 
   RenderBatch* = object
     renderer*: RendererPtr
@@ -15,12 +16,11 @@ type
 func initCamera*(vw, vh: int): Camera =
   result.vw = vw
   result.vh = vh
-  result.x = vw / 2
-  result.y = vh / 2
+  result.pos = vec(0, 0)
   result.zoom = 1.0
 
-func toScreen(c: Camera, x, y: float): Vector[2] =
-  (c.zoom * (([x, y].Vector) - ([c.x, c.y].Vector))) + [c.vw / 2, c.vh / 2].Vector
+func toScreen(c: Camera, worldPos: Vector[2]): Vector[2] =
+  (c.zoom * (worldPos - c.pos)) + vec(c.vw / 2, c.vh / 2)
 
 proc begin*(batch: RenderBatch) =
   batch.renderer.setDrawColor(r = 50, g = 50, b = 50)
@@ -28,10 +28,10 @@ proc begin*(batch: RenderBatch) =
 
 proc render*(batch: RenderBatch,
              tex: TexturePtr,
-             x, y: float,
+             pos: Vector[2],
              w, h: int,
              rot = 0.0) =
-  let sv = batch.cam.toScreen(x, y)
+  let sv = batch.cam.toScreen(pos)
   var dest = rect(sv.x.cint,
                   sv.y.cint,
                   (w.float * batch.cam.zoom).cint,
@@ -41,10 +41,10 @@ proc render*(batch: RenderBatch,
 proc renderRect*(batch: RenderBatch,
                  tex: TexturePtr,
                  src: var Rect,
-                 x, y: float,
+                 pos: Vector[2],
                  w, h: int,
                  rot = 0.0) =
-  let sv = batch.cam.toScreen(x, y)
+  let sv = batch.cam.toScreen(pos)
   var dest = rect(sv.x.cint,
                   sv.y.cint,
                   (w.float * batch.cam.zoom).cint,

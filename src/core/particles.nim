@@ -1,30 +1,31 @@
 import random
 import sdl2
-import drawing
+import drawing, linear
 
 type
   Particle* = object
-    x, y, rot, dx, dy, drot, scaleX, scaleY, lifetime: float
+    pos, vel: Vector[2]
+    rot, drot, scaleX, scaleY, lifetime: float
 
   ParticleEmitter* = object
     tex: TexturePtr
     particles: seq[Particle]
-    x*, y*, emitDelay, sinceEmit, particleMaxLife: float
+    pos*: Vector[2]
+    emitDelay, sinceEmit, particleMaxLife: float
 
 proc initParticleEmitter*(tex: TexturePtr,
-                          x, y, emitDelay, particleMaxLife: float):
+                          pos: Vector[2],
+                          emitDelay, particleMaxLife: float):
                           ParticleEmitter =
   result.tex = tex
   result.particles = @[]
-  result.x = x
-  result.y = y
+  result.pos = pos
   result.emitDelay = emitDelay
   result.sinceEmit = 0
   result.particleMaxLife = particleMaxLife
 
 proc tick(p: var Particle, delta: float) =
-  p.x += p.dx
-  p.y += p.dy
+  p.pos += p.vel
   p.rot += p.drot
   p.lifetime += delta
   
@@ -33,8 +34,10 @@ proc tick*(emitter: var ParticleEmitter,
   emitter.sinceEmit += delta
   while emitter.sinceEmit > emitter.emitDelay:
     emitter.particles.add Particle(
-      x: emitter.x, y: emitter.y, rot: rand(360.0),
-      dx: rand(3.0) - 1.5, dy: rand(3.0) - 1.5, drot: rand(10.0) - 5.0,
+      pos: emitter.pos,
+      rot: rand(360.0),
+      vel: vec(rand(3.0) - 1.5, rand(3.0) - 1.5),
+      drot: rand(10.0) - 5.0,
       scaleX: 1, scaleY: 1, lifetime: 0)
     emitter.sinceEmit -= emitter.emitDelay
 
@@ -50,4 +53,4 @@ proc tick*(emitter: var ParticleEmitter,
 
 proc draw*(batch: RenderBatch, emitter: ParticleEmitter) =
   for p in emitter.particles:
-    batch.render(emitter.tex, p.x, p.y, 10, 10, p.rot)
+    batch.render(emitter.tex, p.pos, 10, 10, p.rot)
