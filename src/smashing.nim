@@ -27,12 +27,13 @@ proc main =
   let window = createWindow(800, 600, "title")
   sdlFailIf window.isNil: "Window could not be created"
   defer: window.destroy()
+
   let renderer = window.createRenderer()
   sdlFailIf renderer.isNil: "Renderer could not be created"
   defer: renderer.destroy()
 
   var quitting = false
-  var pos = vec(50, 50)
+  var pos = vec(-400, 0)
   var inputs: Inputs
 
   let tex = renderer.loadTexture("assets/tophat_blob.png".cstring)
@@ -42,14 +43,28 @@ proc main =
     rect(32.cint, 0.cint, 32.cint, 32.cint),
     rect(0.cint, 32.cint, 32.cint, 32.cint),
     rect(32.cint, 32.cint, 32.cint, 32.cint)]
-  sprite.addAnimation(PlayerAnim.Neutral, frames, 500)
-  sprite.addAnimation(PlayerAnim.Moving, frames, 100)
+  sprite.addAnimation(PlayerAnim.Neutral, frames, 300)
+  sprite.addAnimation(PlayerAnim.Moving, frames, 50)
 
   var ptex = renderer.loadTexture("assets/elf.png")
-  var pe = initParticleEmitter(ptex, pos = vec(100, 100), emitDelay = 3.0, particleMaxLife = 10000.0)
+  var pe = initParticleEmitter(ptex,
+                               pos = vec(100, 100),
+                               emitDelay = 3.0,
+                               particleMaxLife = 10000.0)
   var batch = RenderBatch(renderer: renderer, cam: initCamera(800, 600))
+
+  const fpsCap = 200
+  const frameTimeMinMS = (1000 / fpsCap).int
+  const targetFPS = 60
+  const targetFrameTimeNS = 1_000_000 / targetFPS
+  var lastFrameNs = getPerformanceCounter().int
+
   # Game loop, draws each frame
   while not quitting:
+    let time = getPerformanceCounter().int
+    let delta = (time - lastFrameNs) / targetFrameTimeNS.int
+    lastFrameNs = time
+
     var event = defaultEvent
     while pollEvent(event):
       case event.kind
@@ -62,23 +77,28 @@ proc main =
       else:
         discard
 
-    if inputs[Input.Left]: pos.x -= 1
-    if inputs[Input.Right]: pos.x += 1
-    if inputs[Input.Up]: pos.y -= 1
-    if inputs[Input.Down]: pos.y += 1
+    if inputs[Input.Left]: pos.x -= delta
+    if inputs[Input.Right]: pos.x += delta
+    if inputs[Input.Up]: pos.y -= delta
+    if inputs[Input.Down]: pos.y += delta
     if inputs[Input.Quit]: quitting = true
 
     let anim = if inputs.anyIt(it): PlayerAnim.Moving
                else: PlayerAnim.Neutral
-    sprite.tick(anim, 10)
+    sprite.tick(anim, delta)
 
-    pe.tick(10)
+    pe.tick(delta)
     pe.pos = pos
 
     batch.begin()
     batch.draw(pe)
     batch.draw(sprite, pos, 80, 80)
     batch.renderer.present()
+
+    if fpsCap > 0:
+      let elapsedMS = ((getPerformanceCounter().int - lastFrameNs) / 1000).int
+      if elapsedMS < frameTimeMinMS:
+        delay((frameTimeMinMS - elapsedMS).uint32)
 
 when isMainModule:
     main()
