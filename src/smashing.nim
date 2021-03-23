@@ -1,6 +1,6 @@
 import sequtils
 import sdl2, sdl2 / [image, ttf]
-import core / [animation, particles, drawing]
+import core / [animation, particles, drawing, init]
 
 type
   SDLException = object of Defect
@@ -21,38 +21,13 @@ func toInput(key: Scancode): Input =
   of SDL_SCANCODE_Q: Input.Quit
   else: Input.None
 
-template sdlFailIf(cond: typed, reason: string) =
-  if cond: raise SDLException.newException(
-    reason & ", SDL error: " & $getError())
-
 proc main =
-  sdlFailIf(not sdl2.init(INIT_VIDEO or INIT_TIMER or INIT_EVENTS)):
-    "SDL2 initialization failed"
+  initSdl()
 
-  # defer blocks get called at the end of the procedure, even if an
-  # exception has been thrown
-  defer: sdl2.quit()
-
-  sdlFailIf(not setHint("SDL_RENDER_SCALE_QUALITY", "2")):
-    "Linear texture filtering could not be enabled"
-
-  const imgFlags: cint = IMG_INIT_PNG
-  sdlFailIf(image.init(imgFlags) != imgFlags):
-    "SDL2 Image initialization failed"
-  defer: image.quit()
-
-  sdlFailIf(ttfInit() == SdlError):
-    "SDL2 TTF initialization failed"
-  defer: ttfQuit()
-
-  let window = createWindow(title = "Some gameything",
-    x = SDL_WINDOWPOS_CENTERED, y = SDL_WINDOWPOS_CENTERED,
-    w = 800.cint, h = 600.cint, flags = SDL_WINDOW_SHOWN)
+  let window = createWindow(800, 600, "title")
   sdlFailIf window.isNil: "Window could not be created"
   defer: window.destroy()
-
-  let renderer = window.createRenderer(index = -1,
-    flags = Renderer_Accelerated or Renderer_PresentVsync)
+  let renderer = window.createRenderer()
   sdlFailIf renderer.isNil: "Renderer could not be created"
   defer: renderer.destroy()
 
