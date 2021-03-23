@@ -1,10 +1,8 @@
-import math
-import 
-  sdl2, sdl2/image, sdl2/ttf, sequtils
-
+import sequtils
+import sdl2, sdl2 / [image, ttf]
 import core / [animation, particles, drawing]
 
-type 
+type
   SDLException = object of Defect
 
   Input {.pure.} = enum
@@ -58,15 +56,11 @@ proc main =
   sdlFailIf renderer.isNil: "Renderer could not be created"
   defer: renderer.destroy()
 
-  let tex = renderer.loadTexture("assets/tophat_blob.png".cstring)
-
-  # Set the default color to use for drawing
-
-  # Game loop, draws each frame
   var quitting = false
   var pos = vec(50, 50)
   var inputs: Inputs
 
+  let tex = renderer.loadTexture("assets/tophat_blob.png".cstring)
   var sprite = AnimatedSprite[PlayerAnim](spriteSheet: tex)
   let frames = @[
     rect(0.cint, 0.cint, 32.cint, 32.cint),
@@ -78,10 +72,8 @@ proc main =
 
   var ptex = renderer.loadTexture("assets/elf.png")
   var pe = initParticleEmitter(ptex, pos = vec(100, 100), emitDelay = 3.0, particleMaxLife = 10000.0)
-  var cam = initCamera(800, 600)
-  var batch = RenderBatch(renderer: renderer, cam: cam)
-  var c = 1
-
+  var batch = RenderBatch(renderer: renderer, cam: initCamera(800, 600))
+  # Game loop, draws each frame
   while not quitting:
     var event = defaultEvent
     while pollEvent(event):
@@ -101,18 +93,17 @@ proc main =
     if inputs[Input.Down]: pos.y += 1
     if inputs[Input.Quit]: quitting = true
 
-    if inputs.anyIt(it):
-      sprite.tick(PlayerAnim.Moving, 10)
-    else:
-      sprite.tick(PlayerAnim.Neutral, 10)
+    let anim = if inputs.anyIt(it): PlayerAnim.Moving
+               else: PlayerAnim.Neutral
+    sprite.tick(anim, 10)
 
-    inc c
     pe.tick(10)
     pe.pos = pos
 
-    batch.cam.zoom = 1.5 + sin(c / 50)
     batch.begin()
     batch.draw(pe)
     batch.draw(sprite, pos, 80, 80)
     batch.renderer.present()
-main()
+
+when isMainModule:
+    main()

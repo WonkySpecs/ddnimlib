@@ -28,11 +28,11 @@ proc tick*[T](sprite: var AnimatedSprite[T],
   else:
     sprite.timer += delta
 
-func curFrame*(sprite: AnimatedSprite): Rect =
+template curFrame(sprite: AnimatedSprite): Rect =
   let animation = sprite.animations[sprite.activeAnimation]
   let totFrameTime = animation.frames.len * animation.frameDelay
   let frameNum = ((sprite.timer.int mod totFrameTime) / animation.frameDelay).int
-  result = animation.frames[frameNum]
+  animation.frames[frameNum]
 
 proc draw*(batch: RenderBatch,
            sprite: AnimatedSprite,
