@@ -1,7 +1,5 @@
 import sdl2
-import linear
-
-export linear
+import linear, utils
 
 type
   Camera* = object
@@ -36,16 +34,20 @@ proc start*(batch: RenderBatch) =
   batch.renderer.setDrawColor(r=50, g=50, b=50)
   batch.renderer.clear()
 
+template toScreenRect(worldPos: Vector[2],
+                      worldSize: Vector[2],
+                      cam: Camera): Rect =
+  let
+    screenPos = pos.toScreen(cam)
+    screenSize = vec(w, h) * cam.zoom
+  r(screenPos, screenSize)
+
 proc render*(batch: RenderBatch,
              tex: TexturePtr,
              pos: Vector[2],
              w, h: int,
              rot = 0.0) =
-  let sv = pos.toScreen(batch.cam)
-  var dest = rect(sv.x.cint,
-                  sv.y.cint,
-                  (w.float * batch.cam.zoom).cint,
-                  (h.float * batch.cam.zoom).cint)
+  var dest = toScreenRect(pos, vec(w, h), batch.cam)
   batch.renderer.copyEx(tex, nil, addr dest, rot, nil)
 
 proc renderRect*(batch: RenderBatch,
@@ -54,11 +56,7 @@ proc renderRect*(batch: RenderBatch,
                  pos: Vector[2],
                  w, h: int,
                  rot = 0.0) =
-  let sv = pos.toScreen(batch.cam)
-  var dest = rect(sv.x.cint,
-                  sv.y.cint,
-                  (w.float * batch.cam.zoom).cint,
-                  (h.float * batch.cam.zoom).cint)
+  var dest = toScreenRect(pos, vec(w, h), batch.cam)
   batch.renderer.copyEx(tex, addr src, addr dest, rot, nil)
 
 proc finish*(batch: RenderBatch) =

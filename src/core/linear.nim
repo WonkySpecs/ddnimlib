@@ -4,6 +4,9 @@ type
 func `*`*[N](s: float, v: Vector[N]): Vector[N] =
   for i in 1..N:
     result[i] = s * v[i]
+func `*`*[N](v: Vector[N], s: float): Vector[N] =
+  for i in 1..N:
+    result[i] = s * v[i]
 
 template x*[N](v: Vector[N]): float = v[1]
 template y*[N](v: Vector[N]): float = v[2]

@@ -1,6 +1,6 @@
 import sequtils, math
 import sdl2, sdl2 / [image, ttf]
-import core / [animation, particles, drawing, init]
+import core / [animation, particles, drawing, init, linear, utils]
 
 type
   SDLException = object of Defect
@@ -14,10 +14,10 @@ type
 
 func toInput(key: Scancode): Input =
   case key:
-  of SDL_SCANCODE_RIGHT: Input.Right
-  of SDL_SCANCODE_LEFT: Input.Left
-  of SDL_SCANCODE_UP: Input.Up
-  of SDL_SCANCODE_DOWN: Input.Down
+  of SDL_SCANCODE_D: Input.Right
+  of SDL_SCANCODE_A: Input.Left
+  of SDL_SCANCODE_W: Input.Up
+  of SDL_SCANCODE_S: Input.Down
   of SDL_SCANCODE_Q: Input.Quit
   else: Input.None
 
@@ -25,6 +25,10 @@ proc main =
   const
     vw = 800
     vh = 600
+    fpsCap = 200
+    frameTimeMinMS = (1000 / fpsCap).int
+    targetFPS = 60
+    targetFrameTimeNS = 1_000_000 / targetFPS
 
   initSdl()
 
@@ -36,32 +40,27 @@ proc main =
   sdlFailIf renderer.isNil: "Renderer could not be created"
   defer: renderer.destroy()
 
-  var quitting = false
-  var pos = vec(-400, 0)
-  var inputs: Inputs
+  var
+    lastFrameNs = getPerformanceCounter().int
+    tex = renderer.loadTexture("assets/tophat_blob.png")
+    sprite = AnimatedSprite[PlayerAnim](spriteSheet: tex)
+    ptex = renderer.loadTexture("assets/elf.png")
+    pe = initParticleEmitter(ptex,
+                             pos = vec(100, 100),
+                             emitDelay = 3.0,
+                             particleMaxLife = 10000.0)
+    batch = initBatch(renderer, vw, vh)
+    quitting = false
+    pos = vec(-400, 0)
+    inputs: Inputs
 
-  let tex = renderer.loadTexture("assets/tophat_blob.png".cstring)
-  var sprite = AnimatedSprite[PlayerAnim](spriteSheet: tex)
   let frames = @[
-    rect(0.cint, 0.cint, 32.cint, 32.cint),
-    rect(32.cint, 0.cint, 32.cint, 32.cint),
-    rect(0.cint, 32.cint, 32.cint, 32.cint),
-    rect(32.cint, 32.cint, 32.cint, 32.cint)]
+    r(0, 0, 32, 32),
+    r(32, 0, 32, 32),
+    r(0, 32, 32, 32),
+    r(32, 32, 32, 32)]
   sprite.addAnimation(PlayerAnim.Neutral, frames, 300)
   sprite.addAnimation(PlayerAnim.Moving, frames, 50)
-
-  var ptex = renderer.loadTexture("assets/elf.png")
-  var pe = initParticleEmitter(ptex,
-                               pos = vec(100, 100),
-                               emitDelay = 3.0,
-                               particleMaxLife = 10000.0)
-  var batch = initBatch(renderer, vw, vh)
-
-  const fpsCap = 200
-  const frameTimeMinMS = (1000 / fpsCap).int
-  const targetFPS = 60
-  const targetFrameTimeNS = 1_000_000 / targetFPS
-  var lastFrameNs = getPerformanceCounter().int
 
   # Game loop, draws each frame
   while not quitting:
@@ -94,7 +93,6 @@ proc main =
     pe.tick(delta)
     pe.pos = pos
 
-    batch.cam.rot = 5 * sin(lastFrameNs.float / 1000000)
     batch.start()
     batch.draw(pe)
     batch.draw(sprite, pos, 80, 80)

@@ -1,6 +1,6 @@
 import tables
 from sdl2 import TexturePtr, Rect
-import drawing
+import drawing, linear
 
 type
   Animation = object
