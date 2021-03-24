@@ -1,4 +1,4 @@
-import sequtils
+import sequtils, math
 import sdl2, sdl2 / [image, ttf]
 import core / [animation, particles, drawing, init]
 
@@ -22,9 +22,13 @@ func toInput(key: Scancode): Input =
   else: Input.None
 
 proc main =
+  const
+    vw = 800
+    vh = 600
+
   initSdl()
 
-  let window = createWindow(800, 600, "title")
+  let window = createWindow(vw, vh, "title")
   sdlFailIf window.isNil: "Window could not be created"
   defer: window.destroy()
 
@@ -51,7 +55,7 @@ proc main =
                                pos = vec(100, 100),
                                emitDelay = 3.0,
                                particleMaxLife = 10000.0)
-  var batch = RenderBatch(renderer: renderer, cam: initCamera(800, 600))
+  var batch = initBatch(renderer, vw, vh)
 
   const fpsCap = 200
   const frameTimeMinMS = (1000 / fpsCap).int
@@ -90,10 +94,11 @@ proc main =
     pe.tick(delta)
     pe.pos = pos
 
-    batch.begin()
+    batch.cam.rot = 5 * sin(lastFrameNs.float / 1000000)
+    batch.start()
     batch.draw(pe)
     batch.draw(sprite, pos, 80, 80)
-    batch.renderer.present()
+    batch.finish()
 
     if fpsCap > 0:
       let elapsedMS = ((getPerformanceCounter().int - lastFrameNs) / 1000).int
