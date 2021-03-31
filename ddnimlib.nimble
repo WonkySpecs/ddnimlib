@@ -2,10 +2,9 @@
 
 version       = "0.1.0"
 author        = "Will Taylor"
-description   = "Short legs, shorter temper, massive hands"
+description   = "game lib"
 license       = "MIT"
 srcDir        = "src"
-bin           = @["smashing"]
 
 
 # Dependencies
