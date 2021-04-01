@@ -7,6 +7,9 @@ func `*`*[N](s: float, v: Vec[N]): Vec[N] =
 func `*`*[N](v: Vec[N], s: float): Vec[N] =
   for i in 1..N:
     result[i] = s * v[i]
+func `/`*[N](v: Vec[N], s: float): Vec[N] =
+  for i in 1..N:
+    result[i] = v[i] / s
 
 template x*[N](v: Vec[N]): float = v[1]
 template y*[N](v: Vec[N]): float = v[2]

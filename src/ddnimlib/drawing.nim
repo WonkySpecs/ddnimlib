@@ -29,6 +29,9 @@ proc initBatch*(renderer: RendererPtr, vw, vh: int) : RenderBatch =
 func toScreen(worldPos: Vec[2], c: Camera): Vec[2] =
   (c.zoom * (worldPos - c.pos)) + vec(c.vw / 2, c.vh / 2)
 
+func toWorld*(screenPos: Vec[2], c: Camera): Vec[2] =
+  (screenPos - vec(c.vw / 2, c.vh / 2)) / c.zoom + c.pos
+
 proc start*(batch: RenderBatch) =
   batch.renderer.setRenderTarget(batch.frameTarget)
   batch.renderer.setDrawColor(r=50, g=50, b=50)
