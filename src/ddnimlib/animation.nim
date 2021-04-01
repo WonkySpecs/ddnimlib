@@ -36,7 +36,7 @@ template curFrame(sprite: AnimatedSprite): Rect =
 
 proc draw*(batch: RenderBatch,
            sprite: AnimatedSprite,
-           pos: Vector[2],
+           pos: Vec[2],
            w, h: int) =
   var r = sprite.curFrame
   batch.renderRect(sprite.spriteSheet, r, pos, w, h, 0.0)

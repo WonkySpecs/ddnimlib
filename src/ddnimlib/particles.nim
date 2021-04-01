@@ -4,17 +4,17 @@ import drawing, linear
 
 type
   Particle* = object
-    pos, vel: Vector[2]
+    pos, vel: Vec[2]
     rot, drot, scaleX, scaleY, lifetime: float
 
   ParticleEmitter* = object
     tex: TexturePtr
     particles: seq[Particle]
-    pos*: Vector[2]
+    pos*: Vec[2]
     emitDelay, sinceEmit, particleMaxLife: float
 
 proc initParticleEmitter*(tex: TexturePtr,
-                          pos: Vector[2],
+                          pos: Vec[2],
                           emitDelay, particleMaxLife: float):
                           ParticleEmitter =
   result.tex = tex

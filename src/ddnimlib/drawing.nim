@@ -4,7 +4,7 @@ import linear, utils
 type
   Camera* = object
     vw, vh: int
-    pos*: Vector[2]
+    pos*: Vec[2]
     rot*, zoom*: float
 
   RenderBatch* = object
@@ -26,7 +26,7 @@ proc initBatch*(renderer: RendererPtr, vw, vh: int) : RenderBatch =
                                                SDL_TEXTUREACCESS_TARGET,
                                                vw.cint, vh.cint)
 
-func toScreen(worldPos: Vector[2], c: Camera): Vector[2] =
+func toScreen(worldPos: Vec[2], c: Camera): Vec[2] =
   (c.zoom * (worldPos - c.pos)) + vec(c.vw / 2, c.vh / 2)
 
 proc start*(batch: RenderBatch) =
@@ -34,8 +34,8 @@ proc start*(batch: RenderBatch) =
   batch.renderer.setDrawColor(r=50, g=50, b=50)
   batch.renderer.clear()
 
-template toScreenRect(worldPos: Vector[2],
-                      worldSize: Vector[2],
+template toScreenRect(worldPos: Vec[2],
+                      worldSize: Vec[2],
                       cam: Camera): Rect =
   let
     screenPos = pos.toScreen(cam)
@@ -44,7 +44,7 @@ template toScreenRect(worldPos: Vector[2],
 
 proc render*(batch: RenderBatch,
              tex: TexturePtr,
-             pos: Vector[2],
+             pos: Vec[2],
              w, h: int,
              rot = 0.0) =
   var dest = toScreenRect(pos, vec(w, h), batch.cam)
@@ -53,7 +53,7 @@ proc render*(batch: RenderBatch,
 proc renderRect*(batch: RenderBatch,
                  tex: TexturePtr,
                  src: var Rect,
-                 pos: Vector[2],
+                 pos: Vec[2],
                  w, h: int,
                  rot = 0.0) =
   var dest = toScreenRect(pos, vec(w, h), batch.cam)
