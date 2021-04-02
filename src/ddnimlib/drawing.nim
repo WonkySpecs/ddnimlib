@@ -70,4 +70,3 @@ proc finish*(batch: RenderBatch) =
                         srcrect=nil, dstrect=nil,
                         batch.cam.rot,
                         center=nil, SDL_FLIP_NONE)
-  batch.renderer.present()
