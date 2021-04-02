@@ -24,4 +24,5 @@ proc get*[K](mgr: var TextureManager[K], texKey: K): TexturePtr =
   let
     tex = mgr.renderer.loadTexture(loc)
   mgr.loaded[loc] = tex
+  assert tex != nil, "Failed to load texture: " & loc
   return tex
