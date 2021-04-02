@@ -22,7 +22,7 @@ func initCamera(vw, vh: int): Camera =
 
 proc initView*(renderer: RendererPtr, vw, vh: int) : View =
   result.renderer = renderer
-  result.cam = initCamera(vw, vw)
+  result.cam = initCamera(vw, vh)
   result.target = renderer.createTexture(SDL_PIXELFORMAT_RGBA8888,
                                          SDL_TEXTUREACCESS_TARGET,
                                          vw.cint, vh.cint)
