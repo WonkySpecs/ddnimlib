@@ -4,12 +4,21 @@ type
 func `*`*[N](s: float, v: Vec[N]): Vec[N] =
   for i in 1..N:
     result[i] = s * v[i]
+
 func `*`*[N](v: Vec[N], s: float): Vec[N] =
   for i in 1..N:
     result[i] = s * v[i]
+
 func `/`*[N](v: Vec[N], s: float): Vec[N] =
   for i in 1..N:
     result[i] = v[i] / s
+
+func `/`*[N](v: Vec[N], s: int): Vec[N] =
+  v / s.float
+
+func `%`*[N](v: Vec[N], s: int): Vec[N] =
+  for i in 1..N:
+    result[i] = (v[i].int mod s).float
 
 template x*[N](v: Vec[N]): float = v[1]
 template y*[N](v: Vec[N]): float = v[2]
@@ -28,3 +37,7 @@ func `+`*[N](v1, v2: Vec[N]): Vec[N] =
 func `-`*[N](v1, v2: Vec[N]): Vec[N] =
   for i in 1..N:
     result[i] = v1[i] - v2[i]
+
+func truncate*[N](v: Vec[N]): Vec[N] =
+  for i in 1..N:
+    result[i] = v[i].int.float
