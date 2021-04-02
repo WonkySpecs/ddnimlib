@@ -1,3 +1,4 @@
+import options
 import sdl2
 import linear, utils
 
@@ -61,6 +62,17 @@ proc renderRect*(batch: RenderBatch,
                  rot = 0.0) =
   var dest = toScreenRect(pos, vec(w, h), batch.cam)
   batch.renderer.copyEx(tex, addr src, addr dest, rot, nil)
+
+proc render*(batch: RenderBatch,
+             tex: TexturePtr,
+             src: var Option[Rect],
+             pos: Vec[2],
+             w, h: int,
+             rot = 0.0) =
+  if src.isSome:
+    renderRect(batch, tex, src.get(), pos, w, h, rot)
+  else:
+    render(batch, tex, pos, w, h, rot)
 
 proc finish*(batch: RenderBatch) =
   batch.renderer.setRenderTarget(nil);
