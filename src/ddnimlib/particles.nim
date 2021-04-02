@@ -51,6 +51,6 @@ proc tick*(emitter: var ParticleEmitter,
   for i in toDelete:
     emitter.particles.delete(i)
 
-proc draw*(batch: RenderBatch, emitter: ParticleEmitter) =
+proc draw*(view: View, emitter: ParticleEmitter) =
   for p in emitter.particles:
-    batch.render(emitter.tex, p.pos, 10, 10, p.rot)
+    view.render(emitter.tex, p.pos, 10, 10, p.rot)

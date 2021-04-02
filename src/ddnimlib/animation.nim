@@ -34,9 +34,9 @@ template curFrame(sprite: AnimatedSprite): Rect =
   let frameNum = ((sprite.timer.int mod totFrameTime) / animation.frameDelay).int
   animation.frames[frameNum]
 
-proc draw*(batch: RenderBatch,
+proc draw*(view: View,
            sprite: AnimatedSprite,
            pos: Vec[2],
            w, h: int) =
   var r = sprite.curFrame
-  batch.renderRect(sprite.spriteSheet, r, pos, w, h, 0.0)
+  view.renderRect(sprite.spriteSheet, r, pos, w, h, 0.0)
