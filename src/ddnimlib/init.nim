@@ -21,7 +21,7 @@ template initSdl*() =
     "SDL2 TTF initialization failed"
   defer: ttfQuit()
 
-func createWindow*(w, h: int, title: string, flags=SDL_WINDOW_SHOWN) : WindowPtr =
+func createWindow*(w, h: int, title="An SDL window", flags=SDL_WINDOW_SHOWN) : WindowPtr =
   result = createWindow(title = title,
     x = SDL_WINDOWPOS_CENTERED, y = SDL_WINDOWPOS_CENTERED,
     w = w.cint, h = h.cint, flags = flags)
