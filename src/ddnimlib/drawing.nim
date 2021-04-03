@@ -33,11 +33,6 @@ func toScreen(worldPos: Vec[2], c: Camera): Vec[2] =
 func toWorld*(screenPos: Vec[2], c: Camera): Vec[2] =
   (screenPos - vec(c.vw / 2, c.vh / 2)) / c.zoom + c.pos
 
-proc start*(view: View) =
-  view.renderer.setRenderTarget(view.target)
-  view.renderer.setDrawColor(r=50, g=50, b=50)
-  view.renderer.clear()
-
 template toScreenRect(worldPos: Vec[2],
                       worldSize: Vec[2],
                       cam: Camera): Rect =
@@ -45,6 +40,11 @@ template toScreenRect(worldPos: Vec[2],
     screenPos = pos.toScreen(cam)
     screenSize = vec(w, h) * cam.zoom
   r(screenPos, screenSize)
+
+proc start*(view: View) =
+  view.renderer.setRenderTarget(view.target)
+  view.renderer.setDrawColor(r=0, g=0, b=0)
+  view.renderer.clear()
 
 proc render*(view: View,
              tex: TexturePtr,
