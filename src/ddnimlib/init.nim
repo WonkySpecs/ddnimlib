@@ -21,10 +21,10 @@ template initSdl*() =
     "SDL2 TTF initialization failed"
   defer: ttfQuit()
 
-func createWindow*(w, h: int, title: string) : WindowPtr =
+func createWindow*(w, h: int, title: string, flags=SDL_WINDOW_SHOWN) : WindowPtr =
   result = createWindow(title = title,
     x = SDL_WINDOWPOS_CENTERED, y = SDL_WINDOWPOS_CENTERED,
-    w = w.cint, h = h.cint, flags = SDL_WINDOW_SHOWN)
+    w = w.cint, h = h.cint, flags = flags)
 
 func createRenderer*(window: WindowPtr) : RendererPtr =
   result = window.createRenderer(index = -1,
