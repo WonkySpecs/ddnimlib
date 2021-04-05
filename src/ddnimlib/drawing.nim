@@ -37,7 +37,7 @@ template toScreenRect(worldPos: Vec[2],
                       worldSize: Vec[2],
                       cam: Camera): Rect =
   let
-    screenPos = pos.toScreen(cam)
+    screenPos = worldPos.toScreen(cam)
     screenSize = vec(w, h) * cam.zoom
   r(screenPos, screenSize)
 
