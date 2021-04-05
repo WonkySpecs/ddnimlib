@@ -82,3 +82,9 @@ proc finish*(view: View) =
                        srcrect=nil, dstrect=nil,
                        view.cam.rot,
                        center=nil, SDL_FLIP_NONE)
+
+proc copy*(renderer: RendererPtr, tex: TexturePtr, src: var Option[Rect], dest: var Rect) =
+  if src.isSome:
+    renderer.copy(tex, addr src.get(), addr dest)
+  else:
+    renderer.copy(tex, nil, addr dest)
