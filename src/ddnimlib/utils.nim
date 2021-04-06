@@ -1,4 +1,4 @@
-from sdl2 import Rect, rect
+from sdl2 import Rect, rect, getMouseState
 import linear
 
 template r*(x, y, w, h: int): Rect =
@@ -15,3 +15,8 @@ func bot(r: Rect): float = (r.y + r.h).float
 
 func contains*(r: Rect, p: Vec[2]): bool =
   p.x.cint >= r.x and p.x <= r.right and p.y.cint >= r.y and p.y <= r.bot
+
+func getMousePos*(): Vec[2] =
+  var mx, my: cint
+  discard getMouseState(addr mx, addr my)
+  result = vec(mx, my)
