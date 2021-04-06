@@ -9,3 +9,9 @@ template r*(pos: Vec[2], size: Vec[2]): Rect =
 
 func pos*(r: Rect): Vec[2] = vec(r[0].int, r[1].int)
 func size*(r: Rect): Vec[2] = vec(r[2].int, r[3].int)
+
+func right(r: Rect): float = (r.x + r.w).float
+func bot(r: Rect): float = (r.y + r.h).float
+
+func contains*(r: Rect, p: Vec[2]): bool =
+  p.x.cint >= r.x and p.x <= r.right and p.y.cint >= r.y and p.y <= r.bot
