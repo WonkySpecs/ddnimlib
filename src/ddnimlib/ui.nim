@@ -3,25 +3,24 @@ import sdl2
 import linear, text, utils
 
 type
-  UIElement* = ref object of RootObj
+  ElementKind* = enum
+    Container, Label, Button
+
+  UIElement* = ref object
     tex: Option[TexturePtr] ## NOT optional for buttons and labels
-    size: Vec[2] ## The size to render at. Should be set from the source texture size
+    size*: Vec[2] ## The size to render at. Should be set from the source texture size
     hidden: bool
+    case kind*: ElementKind
+    of Label: bg: Option[TexturePtr]
+    of Button: actions: seq[proc(){.closure.}]
+    of Container:
+      children: seq[tuple[elem: UIElement, pos: Vec[2]]]
+      ## Layout properties used to set child positions when calling `alignLeft`
+      padding: Vec[2] ## Internal padding
+      childMargin: Vec[2] ## Margin between child elements
 
-  Label = ref object of UIElement
-    bg: Option[TexturePtr]
-
-  Button* = ref object of UIElement
-    actions: seq[proc(){.closure.}]
-
-  Container* = ref object of UIElement
-    children: seq[tuple[elem: UIElement, pos: Vec[2]]]
-
-    ## Layout properties used to set child positions when calling `alignLeft`
-    padding: Vec[2] ## Internal padding
-    childMargin: Vec[2] ## Margin between child elements
-
-proc alignLeft*(container: var Container) =
+proc alignLeft*(container: var UIElement) =
+  assert container.kind == Container
   ## Packs child elements linearly left to right, top to bottom.
   ## If elements don't fit they will overflow off the bottom.
   let internalSize = container.size - container.padding * 2
@@ -32,19 +31,20 @@ proc alignLeft*(container: var Container) =
 
   for i in 0..container.children.high:
     let size = container.children[i].elem.size + container.childMargin * 2
-    if size.x + x > container.size.x:
+    if x + size.x > internalSize.x:
       rowHeight = 0
       x = container.padding.x
       y = y + rowHeight + container.padding.y
     if size.y > rowHeight: rowHeight = size.y
     container.children[i].pos = vec(x, y)
+    x += size.x
 
-func initContainer*(size: Vec[2],
+proc initContainer*(size: Vec[2],
                     children: seq[UIElement],
                     bg=none(TexturePtr),
                     padding=vec(5, 5),
                     childMargin=vec(2, 2),
-                    hidden=false): Container =
+                    hidden=false): UIElement =
   new result
   result.size = size
   result.children = children.map(c => (c, vec(0, 0)))
@@ -56,33 +56,31 @@ func initContainer*(size: Vec[2],
 
 func createButtons*(icons: seq[TexturePtr],
                     callbacks: seq[proc(){.closure.}],
-                    size: Vec[2]): seq[Button] =
+                    size: Vec[2]): seq[UIElement] =
   assert icons.len == callbacks.len
   result = collect(newSeq):
     for (i, c) in zip(icons, callbacks):
-      Button(tex: some(i), actions: @[c], size: size)
+      UIElement(kind: Button, tex: some(i), actions: @[c], size: size)
 
-proc click*(btn: Button) =
+proc click*(container: UIElement, pos: Vec[2]): Option[UIElement] =
+  assert container.kind == Container
+  for (c, childPos) in container.children:
+    case c.kind:
+    of Button:
+      let relPos = pos - childPos
+      if relPos >= 0 and relPos <= c.size: return some(c)
+    else: discard #TODO: Handle nested container clicks
+
+proc onClick*(btn: UIElement) =
+  assert btn.kind == Button
   for f in btn.actions:
     f()
 
-proc draw(renderer: RendererPtr,
-          btn: Button,
-          dest: var Rect) =
-  discard renderer.copy(btn.tex.get(), nil, addr dest)
-
-proc draw(renderer: RendererPtr,
-          label: Label,
-          dest: var Rect,
-          textStore: TextStore) =
-  if label.bg.isSome:
-    discard renderer.copy(label.bg.get(), nil, addr dest)
-  discard renderer.copy(label.tex.get(), nil, addr dest)
-
 proc draw*(renderer: RendererPtr,
-           container: Container,
+           container: UIElement,
            pos: Vec[2],
            textStore: TextStore) =
+  assert container.kind == Container
   if container.hidden: return
   var dest = r(pos, container.size)
   if container.tex.isSome:
@@ -90,9 +88,14 @@ proc draw*(renderer: RendererPtr,
 
   for (c, relPos) in container.children:
     if c.hidden: continue
-    if c is Container:
-      renderer.draw(c.Container, pos + relPos, textStore)
-    else:
+    case c.kind:
+    of Container:
+      renderer.draw(c, pos + relPos, textStore)
+    of Label:
       dest = r((pos + relPos), c.size)
-      if c is Label: renderer.draw(c.Label, dest, textStore)
-      if c is Button: renderer.draw(c.Button, dest)
+      if c.bg.isSome:
+        discard renderer.copy(c.bg.get(), nil, addr dest)
+      discard renderer.copy(c.tex.get(), nil, addr dest)
+    of Button:
+      dest = r((pos + relPos), c.size)
+      discard renderer.copy(c.tex.get(), nil, addr dest)
