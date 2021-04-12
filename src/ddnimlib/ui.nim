@@ -8,9 +8,9 @@ If this requires more features than I want to implement, probably best to
 create bindings for Nuklear and use it directly.
 ]#
 
-import options, strutils
-import sdl2
-import linear, utils, drawing
+import options, strutils, tables
+import sdl2, sdl2 / ttf
+import linear, utils, drawing, text
 
 type
   ID = string
@@ -39,6 +39,11 @@ type
     container: Option[Container]
     containerOrig: Vec[2]
     renderer: RendererPtr
+    textStore: TextStore
+
+func newUIContext*(fontFilename: string): Context =
+  new result
+  result.textStore = newTextStore(openFont(fontFilename, 24))
 
 func absOrig(ctx: Context): Vec[2] =
   result = vec(0, 0)
@@ -117,7 +122,7 @@ proc endContainer*(ctx: Context) =
     p.pos + p.padding
   else: vec(0, 0)
 
-proc startLayout*(ctx: Context) =
+proc startLayout*(ctx: Context, itemMargin=vec(3, 3)) =
   assert ctx.container.isSome, "Cannot start layout outside container"
 
   var container = ctx.container.get()
@@ -126,7 +131,7 @@ proc startLayout*(ctx: Context) =
               rowY: container.padding.y,
               rowHeight: 0,
               maxWidth: container.size.x - 2 * container.padding.x,
-              itemMargin: vec(3, 3)))
+              itemMargin: itemMargin))
 
 proc endLayout*(ctx: Context) =
   assert ctx.container.isSome, "Cannot end layout outside container"
@@ -174,3 +179,15 @@ proc doButtonIcon*(ctx: Context,
   if ctx.isActive(label): discard icon.tex.setTextureColorMod(150, 150, 150)
   ctx.renderer.copy(icon, dest)
   discard icon.tex.setTextureColorMod(255, 255, 255)
+
+proc doLabel*(ctx: Context,
+              text: string,
+              fg: Color,
+              bg=none(Color),
+              pos=vec(0, 0)) =
+  var
+    tw, th: cint
+    tex = ctx.textStore.getTextTexture(ctx.renderer, text, fg, bg)
+  discard tex.queryTexture(nil, nil, addr tw, addr th)
+  var dest = ctx.elemDest(pos, vec(tw, th))
+  ctx.renderer.copy(tex, nil, addr dest)

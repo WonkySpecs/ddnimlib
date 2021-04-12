@@ -57,7 +57,5 @@ proc getTextTexture*(store: var TextStore,
   store.access(text)
   store.textures[text] = tex
   if store.textures.len > store.texturesSizeThresh:
-    echo "Flushing ", store.textures.len
     store.flushLastUsed()
-    echo "to ", store.textures.len
   result = tex
