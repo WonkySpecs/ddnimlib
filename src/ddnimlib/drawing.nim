@@ -13,6 +13,10 @@ type
     cam*: Camera
     target: TexturePtr
 
+  TextureRegion* = object
+    tex: TexturePtr
+    region: Option[Rect]
+
 func initCamera(vw, vh: int): Camera =
   result.vw = vw
   result.vh = vh
@@ -88,3 +92,13 @@ proc copy*(renderer: RendererPtr, tex: TexturePtr, src: var Option[Rect], dest: 
     renderer.copy(tex, addr src.get(), addr dest)
   else:
     renderer.copy(tex, nil, addr dest)
+
+func texRegion*(tex: TexturePtr, region=none(Rect)): TextureRegion =
+  TextureRegion(tex: tex, region: region)
+
+proc copy*(renderer: RendererPtr, texRegion: var TextureRegion, dest: var Rect) =
+  if texRegion.region.isSome:
+    var src = texRegion.region.get()
+    renderer.copy(texRegion.tex, addr src, addr dest)
+  else:
+    renderer.copy(texRegion.tex, nil, addr dest)

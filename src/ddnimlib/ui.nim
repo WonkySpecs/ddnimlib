@@ -10,7 +10,7 @@ create bindings for Nuklear and use it directly.
 
 import options, strutils
 import sdl2
-import linear, utils
+import linear, utils, drawing
 
 type
   ID = string
@@ -112,7 +112,7 @@ proc endContainer*(ctx: Context) =
   else: vec(0, 0)
 
 proc doButtonIcon*(ctx: Context,
-                   icon: TexturePtr,
+                   icon: var TextureRegion,
                    label: string,
                    pos: Vec[2],
                    size: Vec[2]): bool =
@@ -128,4 +128,4 @@ proc doButtonIcon*(ctx: Context,
   if ctx.mouseIn(dest):
     ctx.setFocussed(label)
 
-  ctx.renderer.copy(icon, nil, addr dest)
+  ctx.renderer.copy(icon, dest)
