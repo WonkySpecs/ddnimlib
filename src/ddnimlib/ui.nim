@@ -23,11 +23,14 @@ type
     mousePos: Vec[2]
     leftClick: Option[MouseButtonInput]
 
+  RowLayout = ref object
+    nextX, rowY, rowHeight, maxWidth: float
+    itemMargin: Vec[2]
+
   Container = ref object
     parent: Option[Container]
-    pos: Vec[2]
-    size: Vec[2]
-    padding: Vec[2]
+    pos, size, padding: Vec[2]
+    layout: Option[RowLayout]
 
   Context* = ref object
     focussed: ID
@@ -114,13 +117,47 @@ proc endContainer*(ctx: Context) =
     p.pos + p.padding
   else: vec(0, 0)
 
+proc startLayout*(ctx: Context) =
+  assert ctx.container.isSome, "Cannot start layout outside container"
+
+  var container = ctx.container.get()
+  container.layout = some(
+    RowLayout(nextX: container.padding.x,
+              rowY: container.padding.y,
+              rowHeight: 0,
+              maxWidth: container.size.x - 2 * container.padding.x,
+              itemMargin: vec(3, 3)))
+
+proc endLayout*(ctx: Context) =
+  assert ctx.container.isSome, "Cannot end layout outside container"
+  ctx.container.get().layout = none(RowLayout)
+
+proc elemDest(ctx: Context, relPos: Vec[2], size: Vec[2]): Rect =
+  ## Absolute position if not in a container
+  ## Relative to container origin if not in a layout
+  ## Otherwise the next position in rows naively packed left->right, top->bot
+  if ctx.container.isNone: return r(relPos, size)
+  let container = ctx.container.get()
+  if container.layout.isNone: return r(ctx.containerOrig + relPos, size)
+  var layout = container.layout.get()
+
+  # Start a new row if item would be too wide.
+  if layout.nextX + size.x > layout.maxWidth:
+    layout.nextX = container.padding.x
+    layout.rowY += layout.rowHeight + layout.itemMargin.y
+    layout.rowHeight = 0
+
+  if size.y > layout.rowHeight: layout.rowHeight = size.y
+  result = r(ctx.containerOrig + vec(layout.nextX, layout.rowY), size)
+  layout.nextX += size.x + layout.itemMargin.x
+
 proc doButtonIcon*(ctx: Context,
                    icon: var TextureRegion,
                    label: string,
-                   pos: Vec[2],
-                   size: Vec[2]): bool =
+                   size: Vec[2],
+                   pos=vec(0, 0)): bool =
   result = false
-  var dest = r(ctx.containerOrig + pos, size)
+  var dest = ctx.elemDest(pos, size)
   if ctx.isActive(label):
     if ctx.mouseUp():
       ctx.active = ""
