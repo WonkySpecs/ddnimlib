@@ -14,7 +14,7 @@ type
     target: TexturePtr
 
   TextureRegion* = object
-    tex: TexturePtr
+    tex*: TexturePtr
     region: Option[Rect]
 
 func initCamera(vw, vh: int): Camera =

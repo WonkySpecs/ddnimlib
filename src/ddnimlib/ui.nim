@@ -60,6 +60,9 @@ proc pressMouse*(ctx: Context, pos: Vec[2]) =
   ctx.inputs.leftClick = some(MouseButtonInput(down: true, pos: pos))
 proc releaseMouse*(ctx: Context, pos: Vec[2]) =
   ctx.inputs.leftClick = some(MouseButtonInput(down: false, pos: pos))
+
+func mouseUp(ctx: Context): bool =
+  ctx.inputs.leftClick.isSome and not ctx.inputs.leftClick.get().down
 func mouseUpIn(ctx: Context, r: Rect): bool =
   if ctx.inputs.leftClick.isNone: return false
   let click = ctx.inputs.leftClick.get()
@@ -119,13 +122,18 @@ proc doButtonIcon*(ctx: Context,
   result = false
   var dest = r(ctx.containerOrig + pos, size)
   if ctx.isActive(label):
-    if ctx.mouseUpIn(dest):
-      result = true
+    if ctx.mouseUp():
       ctx.active = ""
+      result = ctx.mouseUpIn(dest):
   elif ctx.isFocussed(label) and ctx.mouseDownIn(dest):
     ctx.setActive(label)
 
   if ctx.mouseIn(dest):
+    var padded = dest.padded()
     ctx.setFocussed(label)
+    ctx.renderer.setDrawColor(231, 255, 150)
+    ctx.renderer.fillRect(padded)
 
+  if ctx.isActive(label): discard icon.tex.setTextureColorMod(150, 150, 150)
   ctx.renderer.copy(icon, dest)
+  discard icon.tex.setTextureColorMod(255, 255, 255)

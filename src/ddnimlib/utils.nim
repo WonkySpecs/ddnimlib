@@ -20,3 +20,6 @@ func getMousePos*(): Vec[2] =
   var mx, my: cint
   discard getMouseState(addr mx, addr my)
   result = vec(mx, my)
+
+func padded*(r: Rect, pad=1): Rect =
+  r(r.x - pad, r.y - pad, r.w + 2 * pad, r.h + 2 * pad)
