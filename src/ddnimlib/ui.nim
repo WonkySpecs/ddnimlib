@@ -33,7 +33,7 @@ type
     layout: Option[RowLayout]
 
   Context* = ref object
-    focussed: ID
+    hot: ID
     active: ID
     inputs: Inputs
     container: Option[Container]
@@ -59,8 +59,8 @@ proc id(ctx: Context, label: string): ID =
   result = ('>'.repeat(ctx.containerDepth()) & label).ID
 
 proc isActive(ctx: Context, label: string): bool = ctx.active == ctx.id(label)
-proc isFocussed(ctx: Context, label: string): bool = ctx.focussed == ctx.id(label)
-proc setFocussed(ctx: Context, label: string) = ctx.focussed = ctx.id(label)
+proc isHot(ctx: Context, label: string): bool = ctx.hot == ctx.id(label)
+proc setHot(ctx: Context, label: string) = ctx.hot = ctx.id(label)
 proc setActive(ctx: Context, label: string) = ctx.active = ctx.id(label)
   
 proc setMousePos*(ctx: Context, pos: Vec[2]) = ctx.inputs.mousePos = pos
@@ -167,12 +167,12 @@ proc doButtonIcon*(ctx: Context,
     if ctx.mouseUp():
       ctx.active = ""
       result = ctx.mouseUpIn(dest):
-  elif ctx.isFocussed(label) and ctx.mouseDownIn(dest):
+  elif ctx.isHot(label) and ctx.mouseDownIn(dest):
     ctx.setActive(label)
 
   if ctx.mouseIn(dest):
     var padded = dest.padded()
-    ctx.setFocussed(label)
+    ctx.setHot(label)
     ctx.renderer.setDrawColor(231, 255, 150)
     ctx.renderer.fillRect(padded)
 
