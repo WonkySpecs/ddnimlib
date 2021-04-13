@@ -40,6 +40,7 @@ type
     containerOrig: Vec[2]
     renderer: RendererPtr
     textStore: TextStore
+    hasInputFocus*: bool
 
 func newUIContext*(fontFilename: string): Context =
   new result
@@ -86,6 +87,7 @@ proc startInput*(ctx: Context) = ctx.inputs.leftClick = none(MouseButtonInput)
 proc start*(ctx: Context, renderer: RendererPtr) =
   ctx.renderer = renderer
   ctx.container = none(Container)
+  ctx.hasInputFocus = false
 
 func mouseIn(ctx: Context, r: Rect): bool =
   let p = ctx.inputs.mousePos
@@ -105,6 +107,7 @@ proc startContainer*(ctx: Context,
   if bg.isSome:
     var dest = r(ctx.containerOrig, size)
     ctx.renderer.copy(bg.get(), nil, addr dest)
+  if ctx.mouseIn(r(pos, size)): ctx.hasInputFocus = true
 
 proc startContainer*(ctx: Context,
                      pos: Vec[2],
