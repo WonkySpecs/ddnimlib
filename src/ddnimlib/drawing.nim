@@ -50,14 +50,6 @@ proc start*(view: View) =
   view.renderer.setDrawColor(r=0, g=0, b=0)
   view.renderer.clear()
 
-proc render*(view: View,
-             tex: TexturePtr,
-             pos: Vec[2],
-             w, h: int,
-             rot = 0.0) =
-  var dest = toScreenRect(pos, vec(w, h), view.cam)
-  view.renderer.copyEx(tex, nil, addr dest, rot, nil)
-
 proc renderRect*(view: View,
                  tex: TexturePtr,
                  src: var Rect,
@@ -66,6 +58,18 @@ proc renderRect*(view: View,
                  rot = 0.0) =
   var dest = toScreenRect(pos, vec(w, h), view.cam)
   view.renderer.copyEx(tex, addr src, addr dest, rot, nil)
+
+proc render*(view: View,
+             tex: TexturePtr,
+             pos: Vec[2],
+             w, h: int,
+             rot = 0.0) =
+  var dest = toScreenRect(pos, vec(w, h), view.cam)
+  view.renderer.copyEx(tex, nil, addr dest, rot, nil)
+
+proc drawRect*(view: View, pos, size: Vec[2]) =
+  var dest = toScreenRect(pos, size, view.cam)
+  view.renderer.drawRect(dest)
 
 proc render*(view: View,
              tex: TexturePtr,
