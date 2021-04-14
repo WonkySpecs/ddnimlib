@@ -13,6 +13,9 @@ import sdl2, sdl2 / ttf
 import linear, utils, drawing, text
 
 type
+  Interaction* = enum
+    None, Clicked, Hovered
+
   ID = string
 
   MouseButtonInput = object
@@ -163,21 +166,23 @@ proc doButtonIcon*(ctx: Context,
                    icon: var TextureRegion,
                    label: string,
                    size: Vec[2],
-                   pos=vec(0, 0)): bool =
-  result = false
+                   pos=vec(0, 0)): Interaction =
+  result = None
   var dest = ctx.elemDest(pos, size)
   if ctx.isActive(label):
     if ctx.mouseUp():
       ctx.active = ""
-      result = ctx.mouseUpIn(dest):
+      result = Clicked
   elif ctx.isHot(label) and ctx.mouseDownIn(dest):
     ctx.setActive(label)
 
   if ctx.mouseIn(dest):
-    var padded = dest.padded()
-    ctx.setHot(label)
+    var bg = dest.padded()
     ctx.renderer.setDrawColor(231, 255, 150)
-    ctx.renderer.fillRect(padded)
+    ctx.renderer.fillRect(bg)
+
+    ctx.setHot(label)
+    if result == None: result = Hovered
 
   if ctx.isActive(label): discard icon.tex.setTextureColorMod(150, 150, 150)
   ctx.renderer.copy(icon, dest)
