@@ -37,9 +37,9 @@ func toScreen(worldPos: Vec[2], c: Camera): Vec[2] =
 func toWorld*(screenPos: Vec[2], c: Camera): Vec[2] =
   (screenPos - vec(c.vw / 2, c.vh / 2)) / c.zoom + c.pos
 
-template toScreenRect(worldPos: Vec[2],
-                      worldSize: Vec[2],
-                      cam: Camera): Rect =
+func toScreenRect(worldPos: Vec[2],
+                  worldSize: Vec[2],
+                  cam: Camera): Rect {.inline.} =
   let
     screenPos = worldPos.toScreen(cam)
     screenSize = worldSize * cam.zoom
