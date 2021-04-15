@@ -53,3 +53,9 @@ proc draw*(view: View,
            w, h: int) =
   var r = sprite.curFrame
   view.renderRect(sprite.spriteSheet, r, pos, w, h, 0.0)
+
+proc draw*(view: View,
+           sprite: AnimatedSprite,
+           pos: Vec[2],
+           size: Vec[2]) =
+  view.draw(sprite, pos, size.x.int, size.y.int)
