@@ -13,7 +13,7 @@ func size*(r: Rect): Vec[2] = vec(r[2].int, r[3].int)
 func right(r: Rect): float = (r.x + r.w).float
 func bot(r: Rect): float = (r.y + r.h).float
 
-func contains*(r: Rect, p: Vec[2]): bool =
+func contains*(r: Rect, p: Vec[2]): bool {.inline} =
   p.x.cint >= r.x and p.x <= r.right and p.y.cint >= r.y and p.y <= r.bot
 
 func getMousePos*(): Vec[2] =
@@ -21,5 +21,8 @@ func getMousePos*(): Vec[2] =
   discard getMouseState(addr mx, addr my)
   result = vec(mx, my)
 
-func padded*(r: Rect, pad=1): Rect =
+func padded*(r: Rect, pad=1): Rect {.inline} =
   r(r.x - pad, r.y - pad, r.w + 2 * pad, r.h + 2 * pad)
+
+func center*(r: Rect): Vec[2] {.inline} =
+  vec(r.x.float + r.w / 2, r.y.float + r.h / 2)
