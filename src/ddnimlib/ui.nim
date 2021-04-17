@@ -97,7 +97,7 @@ func mouseIn(ctx: Context, r: Rect): bool =
 proc startContainer*(ctx: Context,
                      pos: Vec[2],
                      size: Vec[2],
-                     bg=none(TexturePtr),
+                     bg: var TextureRegion,
                      padding=vec(5, 5)) =
   let parent = ctx.container
   ctx.container = some(
@@ -105,17 +105,11 @@ proc startContainer*(ctx: Context,
   let porig = if parent.isSome: parent.get().pos + parent.get().padding
               else: vec(0, 0)
   ctx.containerOrig = porig + pos
-  if bg.isSome:
-    var dest = r(ctx.containerOrig, size)
-    ctx.renderer.copy(bg.get(), nil, addr dest)
-  if ctx.mouseIn(r(pos, size)): ctx.hasInputFocus = true
 
-proc startContainer*(ctx: Context,
-                     pos: Vec[2],
-                     size: Vec[2],
-                     bg: TexturePtr,
-                     padding=vec(5, 5)) =
-  ctx.startContainer(pos, size, some(bg), padding)
+  var dest = r(ctx.containerOrig, size)
+  ctx.renderer.copy(bg, dest)
+
+  if ctx.mouseIn(r(pos, size)): ctx.hasInputFocus = true
 
 proc endContainer*(ctx: Context) =
   if ctx.container.isNone: return
@@ -182,9 +176,9 @@ proc doButtonIcon*(ctx: Context,
     ctx.setHot(label)
     if result == None: result = Hovered
 
-  if ctx.isActive(label): discard icon.tex.setTextureColorMod(150, 150, 150)
+  if ctx.isActive(label): icon.setColorMod(150, 150, 150)
   ctx.renderer.copy(icon, dest)
-  discard icon.tex.setTextureColorMod(255, 255, 255)
+  icon.setColorMod(255, 255, 255)
 
 proc doLabel*(ctx: var Context,
               text: string,

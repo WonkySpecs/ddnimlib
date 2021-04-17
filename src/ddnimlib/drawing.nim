@@ -97,6 +97,14 @@ proc copy*(renderer: RendererPtr, tex: TexturePtr, src: var Option[Rect], dest: 
   else:
     renderer.copy(tex, nil, addr dest)
 
+proc setAlphaMod*(tr: TextureRegion, a: uint8) = tr.tex.setTextureAlphaMod(a)
+proc setColorMod*(tr: TextureRegion, r, g, b: uint8) =
+  discard tr.tex.setTextureColorMod(r, g, b)
+proc setColorMod*(tr: TextureRegion, r, g, b: int) =
+  discard tr.tex.setTextureColorMod(r.uint8, g.uint8, b.uint8)
+proc setColorMod*(tr: TextureRegion, c: Color) =
+  discard tr.tex.setTextureColorMod(c.r, c.g, c.b)
+
 func texRegion*(tex: TexturePtr, region=none(Rect)): TextureRegion =
   TextureRegion(tex: tex, region: region)
 
@@ -106,3 +114,10 @@ proc copy*(renderer: RendererPtr, texRegion: var TextureRegion, dest: var Rect) 
     renderer.copy(texRegion.tex, addr src, addr dest)
   else:
     renderer.copy(texRegion.tex, nil, addr dest)
+
+proc render*(view: View,
+             tr: var TextureRegion,
+             pos: Vec[2],
+             w, h: int, rot = 0.0) =
+  var dest = toScreenRect(pos, vec(w, h), view.cam)
+  view.renderer.copy(tr.tex, tr.region, dest)
