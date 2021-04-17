@@ -42,20 +42,18 @@ type
     container: Option[Container]
     containerOrig: Vec[2]
     renderer: RendererPtr
-    textStore: TextStore
+    fontName: string
+    textStores: Table[int, TextStore]
     hasInputFocus*: bool
 
 func newUIContext*(fontFilename: string): Context =
   new result
-  result.textStore = newTextStore(openFont(fontFilename, 24))
+  result.fontName = fontFilename
 
-func absOrig(ctx: Context): Vec[2] =
-  result = vec(0, 0)
-  var container = ctx.container
-  while container.isSome:
-    let c = container.get()
-    result += c.pos + c.padding
-    container = c.parent
+proc font(ctx: var Context, size: int): TextStore =
+  if not ctx.textStores.hasKey(size):
+    ctx.textStores[size] = newTextStore(openFont(ctx.fontName, size.cint))
+  result = ctx.textStores[size]
 
 proc containerDepth(ctx: Context): int = 1
 
@@ -188,14 +186,16 @@ proc doButtonIcon*(ctx: Context,
   ctx.renderer.copy(icon, dest)
   discard icon.tex.setTextureColorMod(255, 255, 255)
 
-proc doLabel*(ctx: Context,
+proc doLabel*(ctx: var Context,
               text: string,
               fg: Color,
+              size=24,
               bg=none(Color),
               pos=vec(0, 0)) =
   var
     tw, th: cint
-    tex = ctx.textStore.getTextTexture(ctx.renderer, text, fg, bg)
+    font = ctx.font(size)
+    tex = font.getTextTexture(ctx.renderer, text, fg, bg)
   discard tex.queryTexture(nil, nil, addr tw, addr th)
   var dest = ctx.elemDest(pos, vec(tw, th))
   ctx.renderer.copy(tex, nil, addr dest)
