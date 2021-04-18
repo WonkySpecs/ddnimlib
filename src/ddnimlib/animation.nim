@@ -42,20 +42,15 @@ proc tick*[T](sprite: var AnimatedSprite[T],
     sprite.timer += delta
 
 func curFrame(sprite: AnimatedSprite): Rect {.inline.} =
-  let animation = sprite.animations[sprite.activeAnimation]
-  let totFrameTime = animation.frames.len * animation.frameDelay
-  let frameNum = ((sprite.timer.int mod totFrameTime) / animation.frameDelay).int
+  let
+    animation = sprite.animations[sprite.activeAnimation]
+    totFrameTime = animation.frames.len * animation.frameDelay
+    frameNum = ((sprite.timer.int mod totFrameTime) / animation.frameDelay).int
   animation.frames[frameNum]
 
 proc draw*(view: View,
            sprite: AnimatedSprite,
            pos: Vec[2],
-           w, h: int) =
-  var r = sprite.curFrame
-  view.renderRect(sprite.spriteSheet, r, pos, w, h, 0.0)
-
-proc draw*(view: View,
-           sprite: AnimatedSprite,
-           pos: Vec[2],
            size: Vec[2]) =
-  view.draw(sprite, pos, size.x.int, size.y.int)
+  var src = sprite.curFrame
+  view.render(sprite.spriteSheet, src, pos, size)

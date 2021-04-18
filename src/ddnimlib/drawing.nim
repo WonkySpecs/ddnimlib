@@ -50,38 +50,6 @@ proc start*(view: View) =
   view.renderer.setDrawColor(r=0, g=0, b=0)
   view.renderer.clear()
 
-proc renderRect*(view: View,
-                 tex: TexturePtr,
-                 src: var Rect,
-                 pos: Vec[2],
-                 w, h: int,
-                 rot = 0.0) =
-  var dest = toScreenRect(pos, vec(w, h), view.cam)
-  view.renderer.copyEx(tex, addr src, addr dest, rot, nil)
-
-proc render*(view: View,
-             tex: TexturePtr,
-             pos: Vec[2],
-             w, h: int,
-             rot = 0.0) =
-  var dest = toScreenRect(pos, vec(w, h), view.cam)
-  view.renderer.copyEx(tex, nil, addr dest, rot, nil)
-
-proc drawRect*(view: View, pos, size: Vec[2]) =
-  var dest = toScreenRect(pos, size, view.cam)
-  view.renderer.drawRect(dest)
-
-proc render*(view: View,
-             tex: TexturePtr,
-             src: var Option[Rect],
-             pos: Vec[2],
-             w, h: int,
-             rot = 0.0) =
-  if src.isSome:
-    renderRect(view, tex, src.get(), pos, w, h, rot)
-  else:
-    render(view, tex, pos, w, h, rot)
-
 proc finish*(view: View) =
   view.renderer.setRenderTarget(nil);
   view.renderer.setDrawColor(r=0, g=0, b=0)
@@ -90,12 +58,6 @@ proc finish*(view: View) =
                        srcrect=nil, dstrect=nil,
                        view.cam.rot,
                        center=nil, SDL_FLIP_NONE)
-
-proc copy*(renderer: RendererPtr, tex: TexturePtr, src: var Option[Rect], dest: var Rect) =
-  if src.isSome:
-    renderer.copy(tex, addr src.get(), addr dest)
-  else:
-    renderer.copy(tex, nil, addr dest)
 
 proc setAlphaMod*(tr: TextureRegion, a: uint8) = tr.tex.setTextureAlphaMod(a)
 proc setColorMod*(tr: TextureRegion, r, g, b: uint8) =
@@ -108,6 +70,19 @@ proc setColorMod*(tr: TextureRegion, c: Color) =
 func texRegion*(tex: TexturePtr, region=none(Rect)): TextureRegion =
   TextureRegion(tex: tex, region: region)
 
+proc drawRect*(view: View, pos, size: Vec[2]) =
+  var dest = toScreenRect(pos, size, view.cam)
+  view.renderer.drawRect(dest)
+
+proc render*(view: View,
+             tex: TexturePtr,
+             src: var Rect,
+             pos: Vec[2],
+             size: Vec[2],
+             rot = 0.0) =
+  var dest = toScreenRect(pos, size, view.cam)
+  view.renderer.copyEx(tex, addr src, addr dest, rot, nil)
+
 proc copy*(renderer: RendererPtr, texRegion: var TextureRegion, dest: var Rect) =
   if texRegion.region.isSome:
     var src = texRegion.region.get()
@@ -118,6 +93,7 @@ proc copy*(renderer: RendererPtr, texRegion: var TextureRegion, dest: var Rect) 
 proc render*(view: View,
              tr: var TextureRegion,
              pos: Vec[2],
-             w, h: int, rot = 0.0) =
-  var dest = toScreenRect(pos, vec(w, h), view.cam)
-  view.renderer.copy(tr.tex, tr.region, dest)
+             size: Vec[2],
+             rot = 0.0) =
+  var dest = toScreenRect(pos, size, view.cam)
+  view.renderer.copy(tr, dest)
