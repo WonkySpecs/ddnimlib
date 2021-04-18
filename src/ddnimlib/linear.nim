@@ -1,3 +1,5 @@
+import math
+
 type
   Vec*[N: static[int]] = array[1..N, float]
 
@@ -49,3 +51,7 @@ func `-`*[N](v1, v2: Vec[N]): Vec[N] =
 func truncate*[N](v: Vec[N]): Vec[N] =
   for i in 1..N:
     result[i] = v[i].int.float
+
+func clampValues*[N](v: Vec[N], a, b: float): Vec[N] =
+  for i in 1..N:
+    result[i] = clamp(v[i], a, b)
