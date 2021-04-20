@@ -27,7 +27,7 @@ type
     leftClick: Option[MouseButtonInput]
 
   RowLayout = ref object
-    nextX, rowY, rowHeight, maxWidth: float
+    nextX, rowY, rowHeight, maxWidth, minItemWidth: float
     itemMargin: Vec[2]
 
   Container = ref object
@@ -120,7 +120,7 @@ proc endContainer*(ctx: Context) =
     p.pos + p.padding
   else: vec(0, 0)
 
-proc startLayout*(ctx: Context, itemMargin=vec(3, 3)) =
+proc startLayout*(ctx: Context, itemMargin=vec(3, 3), minItemWidth=0.0) =
   assert ctx.container.isSome, "Cannot start layout outside container"
 
   var container = ctx.container.get()
@@ -129,17 +129,17 @@ proc startLayout*(ctx: Context, itemMargin=vec(3, 3)) =
               rowY: container.padding.y,
               rowHeight: 0,
               maxWidth: container.size.x - 2 * container.padding.x,
-              itemMargin: itemMargin))
+              itemMargin: itemMargin,
+              minItemWidth: minItemWidth))
 
-proc layoutNewRow*(ctx: Context) =
-  let
-    container = ctx.container
-    layoutOpt = container.map(container => container.layout).flatten()
-  assert layoutOpt.isSome, "No layout to start a new row in"
-  var layout = layoutOpt.get()
-  layout.nextX = container.get().padding.x
+proc layoutNewRow(container: Container) =
+  assert container.layout.isSome, "Cannot start new row without layout"
+  let layout = container.layout.get()
+  layout.nextX = container.padding.x
   layout.rowY += layout.rowHeight + layout.itemMargin.y
   layout.rowHeight = 0
+
+proc layoutNewRow*(ctx: Context) = ctx.container.get().layoutNewRow()
 
 proc endLayout*(ctx: Context) =
   assert ctx.container.isSome, "Cannot end layout outside container"
@@ -154,15 +154,14 @@ proc elemDest(ctx: Context, relPos: Vec[2], size: Vec[2]): Rect =
   if container.layout.isNone: return r(ctx.containerOrig + relPos, size)
   var layout = container.layout.get()
 
+  let x = layout.nextX + max(size.x, layout.minItemWidth)
   # Start a new row if item would be too wide.
-  if layout.nextX + size.x > layout.maxWidth:
-    layout.nextX = container.padding.x
-    layout.rowY += layout.rowHeight + layout.itemMargin.y
-    layout.rowHeight = 0
+  if x > layout.maxWidth:
+    container.layoutNewRow()
 
   if size.y > layout.rowHeight: layout.rowHeight = size.y
   result = r(ctx.containerOrig + vec(layout.nextX, layout.rowY), size)
-  layout.nextX += size.x + layout.itemMargin.x
+  layout.nextX = x + layout.itemMargin.x
 
 proc doButtonIcon*(ctx: Context,
                    icon: var TextureRegion,
