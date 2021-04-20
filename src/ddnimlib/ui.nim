@@ -8,7 +8,7 @@ If this requires more features than I want to implement, probably best to
 create bindings for Nuklear and use it directly.
 ]#
 
-import options, strutils, tables
+import options, strutils, tables, sugar
 import sdl2, sdl2 / ttf
 import linear, utils, drawing, text
 
@@ -130,6 +130,16 @@ proc startLayout*(ctx: Context, itemMargin=vec(3, 3)) =
               rowHeight: 0,
               maxWidth: container.size.x - 2 * container.padding.x,
               itemMargin: itemMargin))
+
+proc layoutNewRow*(ctx: Context) =
+  let
+    container = ctx.container
+    layoutOpt = container.map(container => container.layout).flatten()
+  assert layoutOpt.isSome, "No layout to start a new row in"
+  var layout = layoutOpt.get()
+  layout.nextX = container.get().padding.x
+  layout.rowY += layout.rowHeight + layout.itemMargin.y
+  layout.rowHeight = 0
 
 proc endLayout*(ctx: Context) =
   assert ctx.container.isSome, "Cannot end layout outside container"
