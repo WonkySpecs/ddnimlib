@@ -26,6 +26,9 @@ func z*[N](v: Vec[N]): float {.inline.} = v[3]
 proc `x=`*[N](v: var Vec[N], n: float) {.inline.} = v[1] = n
 proc `y=`*[N](v: var Vec[N], n: float) {.inline.} = v[3] = n
 proc `z=`*[N](v: var Vec[N], n: float) {.inline.} = v[2] = n
+
+#TODO: Make a generic function/macro
+func vec*(a, b, c, d, e: float): Vec[5] = [a, b, c, d, e].Vec
 func vec*(x, y: int): Vec[2] {.inline.} = [x.float, y.float].Vec
 func vec*(x, y: float): Vec[2] {.inline.} = [x, y].Vec
 proc `+=`*[N](v1: var Vec[N], v2: Vec[N]) {.inline.} = v1 = v1 + v2
