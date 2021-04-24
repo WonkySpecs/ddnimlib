@@ -141,8 +141,6 @@ proc endContainer*(ctx: Context) =
            else: ctx.calcContainerSize()
 
   var dest = r(c.pos, size)
-  ctx.renderer.copy(c.bg, dest)
-
   if ctx.mouseIn(dest): ctx.hasInputFocus = true
 
   ctx.container = c.parent
@@ -152,10 +150,9 @@ proc endContainer*(ctx: Context) =
   else:
     ctx.containerOrig = vec(0, 0)
 
+  ctx.draw(c.bg, dest)
   for (tr, dest, col) in c.renderQueue.mitems:
-    if col.isSome: tr.setColorMod(col.get())
-    ctx.renderer.copy(tr, dest)
-    if col.isSome: tr.setColorMod(white)
+    ctx.draw(tr, dest, col)
 
 proc startLayout*(ctx: Context, itemMargin=vec(3, 3), minItemWidth=0.0) =
   assert ctx.container.isSome, "Cannot start layout outside container"
