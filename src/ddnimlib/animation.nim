@@ -41,6 +41,9 @@ proc tick*[T](sprite: var AnimatedSprite[T],
   else:
     sprite.timer += delta
 
+proc tick*[T](sprite: var AnimatedSprite[T],
+              delta: float) = sprite.tick(sprite.activeAnimation, delta)
+
 func curFrame(sprite: AnimatedSprite): Rect {.inline.} =
   let
     animation = sprite.animations[sprite.activeAnimation]
