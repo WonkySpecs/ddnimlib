@@ -216,7 +216,8 @@ proc doButtonIcon*(ctx: Context,
   if ctx.isActive(label):
     if ctx.mouseUp():
       ctx.active = ""
-      result = Clicked
+      if ctx.mouseUpIn(dest):
+        result = Clicked
   elif ctx.isHot(label) and ctx.mouseDownIn(dest):
     ctx.setActive(label)
 
