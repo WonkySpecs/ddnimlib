@@ -238,7 +238,8 @@ proc doLabel*(ctx: var Context,
               fg: Color,
               size=24,
               bg=none(Color),
-              pos=vec(0, 0)) =
+              pos=vec(0, 0)): Interaction =
+  result = None
   var
     tw, th: cint
     font = ctx.font(size)
@@ -248,3 +249,4 @@ proc doLabel*(ctx: var Context,
     dest = ctx.elemDest(pos, vec(tw, th))
     tr = texRegion(tex)
   ctx.draw(tr, dest)
+  if ctx.mouseIn(dest): result = Hovered
