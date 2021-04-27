@@ -30,12 +30,23 @@ type
     nextX, rowY, rowHeight, maxWidth, minItemWidth, width: float
     itemMargin: Vec[2]
 
+  BGKind = enum
+    Textured, Colored
+
+  Background = object
+    case kind: BGKind
+    of Textured:
+      tr: TextureRegion
+    of Colored:
+      fill, border: Color
+      borderWidth: int
+
   Container = ref object
     parent: Option[Container]
     pos, padding: Vec[2]
     size: Option[Vec[2]]
     layout: Option[RowLayout]
-    bg: TextureRegion
+    bg: Background
     renderQueue: seq[tuple[tr: TextureRegion, dest: Rect, col: Option[Color]]]
 
   Context* = ref object
@@ -111,14 +122,17 @@ func calcContainerSize(ctx: Context): Vec[2] =
   let l = layoutOpt.get()
   vec(10, 100)
 
-proc startContainer*(ctx: Context,
-                     pos: Vec[2],
-                     bg: var TextureRegion,
-                     size=none(Vec[2]),
-                     padding=vec(5, 5)) =
+proc startContainer(ctx: Context,
+                    pos: Vec[2],
+                    bg: Background,
+                    size: Option[Vec[2]],
+                    padding=vec(5, 5)) =
   let parent = ctx.container
-  ctx.container = some(
-    Container(parent: parent, pos: pos, size: size, padding: padding, bg: bg))
+  ctx.container = some(Container(parent: parent,
+                                 pos: pos,
+                                 size: size,
+                                 padding: padding,
+                                 bg: bg))
   let porig = if parent.isSome: parent.get().pos + parent.get().padding
               else: vec(0, 0)
   ctx.containerOrig = porig + pos
@@ -126,9 +140,30 @@ proc startContainer*(ctx: Context,
 proc startContainer*(ctx: Context,
                      pos: Vec[2],
                      bg: var TextureRegion,
+                     size=none(Vec[2]),
+                     padding=vec(5, 5)) =
+  let background = Background(kind: Textured, tr: bg)
+  ctx.startContainer(pos, background, size, padding)
+
+proc startContainer*(ctx: Context,
+                     pos: Vec[2],
+                     bg: var TextureRegion,
                      size: Vec[2],
                      padding=vec(5, 5)) =
   ctx.startContainer(pos, bg, some(size), padding)
+
+proc startContainer*(ctx: Context,
+                     pos: Vec[2],
+                     fill: Color,
+                     border=black,
+                     borderWidth=2,
+                     size=none(Vec[2]),
+                     padding=vec(5, 5)) =
+  let bg = Background(kind: Colored,
+                      fill: fill,
+                      border: border,
+                      borderWidth: borderWidth)
+  ctx.startContainer(pos, bg, size, padding)
 
 proc endContainer*(ctx: Context) =
   if ctx.container.isNone:
@@ -150,7 +185,20 @@ proc endContainer*(ctx: Context) =
   else:
     ctx.containerOrig = vec(0, 0)
 
-  ctx.draw(c.bg, dest)
+  case c.bg.kind:
+  of Textured: ctx.draw(c.bg.tr, dest)
+  # TODO: This only works for top level containers.
+  #       Consider adding a way to queue non texture drawing
+  of Colored:
+    var
+      pad = vec(c.bg.borderWidth, c.bg.borderWidth)
+      inner = r(dest.pos + pad, dest.size - pad * 2)
+    ctx.renderer.setDrawColor(c.bg.border)
+    ctx.renderer.fillRect(dest)
+    ctx.renderer.setDrawColor(c.bg.fill)
+    ctx.renderer.fillRect(inner)
+    ctx.renderer.setDrawColor(white)
+
   for (tr, dest, col) in c.renderQueue.mitems:
     ctx.draw(tr, dest, col)
 
@@ -235,7 +283,7 @@ proc doButtonIcon*(ctx: Context,
 
 proc doLabel*(ctx: var Context,
               text: string,
-              fg: Color,
+              fg=black,
               size=24,
               bg=none(Color),
               pos=vec(0, 0)): Interaction =
