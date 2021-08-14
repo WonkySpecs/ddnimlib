@@ -25,8 +25,8 @@ proc initParticleEmitter*(tex: TexturePtr,
   result.particleMaxLife = particleMaxLife
 
 proc tick(p: var Particle, delta: float) =
-  p.pos += p.vel
-  p.rot += p.drot
+  p.pos += p.vel * delta
+  p.rot += p.drot * delta
   p.lifetime += delta
   
 proc tick*(emitter: var ParticleEmitter,
