@@ -83,12 +83,24 @@ proc render*(view: View,
   var dest = toScreenRect(pos, size, view.cam)
   view.renderer.copyEx(tex, addr src, addr dest, rot, nil)
 
-proc copy*(renderer: RendererPtr, texRegion: var TextureRegion, dest: var Rect) =
-  if texRegion.region.isSome:
-    var src = texRegion.region.get()
-    renderer.copy(texRegion.tex, addr src, addr dest)
+proc renderAbs*(view: View,
+                tr: var TextureRegion,
+                pos: Vec[2],
+                size: Vec[2],
+                rot = 0.0) =
+  var dest = r(pos, size)
+  if tr.region.isSome:
+    var src = tr.region.get()
+    view.renderer.copyEx(tr.tex, addr src, addr dest, rot, nil)
   else:
-    renderer.copy(texRegion.tex, nil, addr dest)
+    view.renderer.copyEx(tr.tex, nil, addr dest, rot, nil)
+
+proc copy*(renderer: RendererPtr, tr: var TextureRegion, dest: var Rect) =
+  if tr.region.isSome:
+    var src = tr.region.get()
+    renderer.copy(tr.tex, addr src, addr dest)
+  else:
+    renderer.copy(tr.tex, nil, addr dest)
 
 proc render*(view: View,
              tr: var TextureRegion,
