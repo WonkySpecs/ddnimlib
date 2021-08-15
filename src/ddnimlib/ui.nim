@@ -281,6 +281,55 @@ proc doButtonIcon*(ctx: Context,
             else: none(Color)
   ctx.draw(icon, dest, col)
 
+proc doButtonLabel*(ctx: var Context,
+                    text: string,
+                    size=24,
+                    fg=black,
+                    bg=none(Color),
+                    hover_bg=none(Color),
+                    active_bg=none(Color),
+                    pos=vec(0, 0)): Interaction =
+  result = None
+  let
+    label = text & "-" & "btn"
+  var
+    tw, th: cint
+    font = ctx.font(size)
+    tex_for_size = font.getTextTexture(
+      ctx.renderer,
+      text,
+      fg, none(Color))
+  discard tex_for_size.queryTexture(
+    nil, nil, addr tw, addr th)
+
+  var
+    dest = ctx.elemDest(pos, vec(tw, th))
+
+  if ctx.isActive(label):
+    if ctx.mouseUp():
+      ctx.active = ""
+      if ctx.mouseUpIn(dest):
+        result = Clicked
+  elif ctx.isHot(label) and ctx.mouseDownIn(dest):
+    ctx.setActive(label)
+
+  if ctx.mouseIn(dest):
+    ctx.setHot(label)
+    if result == None: result = Hovered
+  elif ctx.isHot(label):
+    ctx.hot = ""
+
+  var tex =
+    if ctx.isActive(label) and active_bg.isSome:
+      font.getTextTexture(ctx.renderer, text, fg, active_bg)
+    elif ctx.isHot(label) and hover_bg.isSome:
+      font.getTextTexture(ctx.renderer, text, fg, hover_bg)
+    else:
+      font.getTextTexture(ctx.renderer, text, fg, bg)
+
+  var tr = texRegion(tex, none(Rect))
+  ctx.draw(tr, dest)
+
 proc doLabel*(ctx: var Context,
               text: string,
               fg=black,
