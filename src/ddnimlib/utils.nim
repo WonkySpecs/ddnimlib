@@ -1,4 +1,5 @@
-from sdl2 import Rect, rect, getMouseState
+import options, hashes
+from sdl2 import Rect, rect, getMouseState, Color
 import linear
 
 func r*(x, y, w, h: int): Rect {.inline.} =
@@ -26,3 +27,11 @@ func padded*(r: Rect, pad=1): Rect {.inline} =
 
 func center*(r: Rect): Vec[2] {.inline} =
   vec(r.x.float + r.w / 2, r.y.float + r.h / 2)
+
+func c*(r, g, b: range[0..255]): Color =
+  (r.uint8, g.uint8, b.uint8, 255.uint8)
+
+proc hash*(opt: Option): Hash =
+  var h: Hash = 0
+  if opt.isSome:
+    h = hash(opt.get())

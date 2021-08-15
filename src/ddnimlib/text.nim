@@ -1,11 +1,16 @@
 import tables, deques, options, sets, sugar
 import sdl2, sdl2 / ttf
+import utils
 
 type
+  TextKey = tuple
+    text: string
+    fg: Color
+    bg: Option[Color]
   TextStore* = ref object
     font: FontPtr
-    textures: Table[string, TexturePtr]
-    accesses: Deque[string]
+    textures: Table[TextKey, TexturePtr]
+    accesses: Deque[TextKey]
     texturesSizeThresh: int
     accessesMaxLen: int
 
@@ -27,8 +32,8 @@ proc renderText*(renderer: RendererPtr,
   surf.freeSurface
   result = tex
 
-proc access(store: TextStore, text: string) =
-  store.accesses.addLast(text)
+proc access(store: TextStore, k: TextKey) =
+  store.accesses.addLast(k)
   if store.accesses.len > store.accessesMaxLen:
     store.accesses.popFirst()
 
@@ -50,12 +55,13 @@ proc getTextTexture*(store: var TextStore,
                      text: string,
                      fg: Color,
                      bg: Option[Color]): TexturePtr =
-  if store.textures.hasKey(text):
-    return store.textures[text]
+  let k = (text: text, fg: fg, bg: bg).TextKey
+  if store.textures.hasKey(k):
+    return store.textures[k]
 
   let tex = renderer.renderText(store.font, text, fg, bg)
-  store.access(text)
-  store.textures[text] = tex
+  store.access(k)
+  store.textures[k] = tex
   if store.textures.len > store.texturesSizeThresh:
     store.flushLastUsed()
   result = tex
