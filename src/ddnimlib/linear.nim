@@ -1,4 +1,5 @@
 import math
+from sdl2 import Rect, rect
 
 type
   Vec*[N: static[int]] = array[1..N, float]
@@ -30,6 +31,8 @@ proc `z=`*[N](v: var Vec[N], n: float) {.inline.} = v[2] = n
 #TODO: Make a generic function/macro
 func vec*(a, b, c, d, e: float): Vec[5] = [a, b, c, d, e].Vec
 func vec*(x, y: int): Vec[2] {.inline.} = [x.float, y.float].Vec
+func vec*(x: int, y: float): Vec[2] {.inline.} = [x.float, y].Vec
+func vec*(x: float, y: int): Vec[2] {.inline.} = [x, y.float].Vec
 func vec*(x, y: float): Vec[2] {.inline.} = [x, y].Vec
 proc `+=`*[N](v1: var Vec[N], v2: Vec[N]) {.inline.} = v1 = v1 + v2
 
@@ -58,3 +61,8 @@ func truncate*[N](v: Vec[N]): Vec[N] =
 func clampValues*[N](v: Vec[N], a, b: float): Vec[N] =
   for i in 1..N:
     result[i] = clamp(v[i], a, b)
+
+func `+`*(v: Vec[2], r: Rect): Rect =
+  rect(r.x + v.x.cint, r.y + v.y.cint, r.w, r.h)
+func `+`*(r: Rect, v: Vec[2]): Rect =
+  rect(r.x + v.x.cint, r.y + v.y.cint, r.w, r.h)
