@@ -8,7 +8,7 @@ If this requires more features than I want to implement, probably best to
 create bindings for Nuklear and use it directly.
 ]#
 
-import options, strutils, tables, sugar
+import options, strutils, tables, sugar, math
 import sdl2, sdl2 / ttf
 import linear, utils, drawing, text, colors
 
@@ -17,7 +17,7 @@ type
     None, Clicked, Hovered
 
   Reorder* = object
-    oldPos, newPos: int
+    oldPos*, newPos*: int
 
   ID = string
 
@@ -349,8 +349,26 @@ proc doLabel*(ctx: var Context,
   ctx.draw(tr, dest)
   if ctx.mouseIn(dest): result = Hovered
 
+# Assumes all items are the same height
+func idxInList(y, h, pad, num_items: int): int =
+  let elem_height = h / num_items
+  min(num_items - 1, round(y.float / elem_height).int)
+
+func closestTo(y: int, heights: openArray[int]): int =
+  var found = false
+  for i in 0..<heights.high:
+    if found: break
+    if heights[i + 1] > y:
+      let
+        toCur = y - heights[i]
+        toNext = heights[i + 1] - y
+      result = if toNext < toCur: i + 1 else: i
+      found = true
+  if not found: result = heights.high
+
 proc doReorderableIcons*(
   ctx: var Context,
+  label: ID,
   pos: Vec[2],
   icons: openArray[TextureRegion],
   fill: Color,
@@ -358,16 +376,39 @@ proc doReorderableIcons*(
   borderWidth=2,
   padding = vec(5, 5),
   size = none(Vec[2])): Option[Reorder] =
+
   ctx.startContainer(pos, fill, border, borderWidth, size, padding)
   ctx.startLayout(padding)
-  for icon in icons:
+  var abs_tops = newSeq[int]()
+  for n, icon in icons:
     var
       dest = ctx.elemDest(pos, icon.getSize())
-      t = icon # Is this doing a copy?
+      t = icon
     ctx.draw(t, dest)
+    abs_tops.add(dest.y)
     # Add highlight option
-    # If mouse down in dest, set inputs.draggingIdx and this is active
-  # If active and not mouse up, show new position hint
+    if ctx.mouseDownIn(dest):
+      ctx.setActive(label)
+      ctx.inputs.draggingIdx = n
   ctx.endLayout()
-  # If active and mouse up, if in container return a Reorder
+
+  let container_rect =  r(pos, ctx.container.get().size.get())
+  if ctx.isActive(label):
+    if ctx.mouseUpIn(container_rect):
+      let releasedIdx = ctx.inputs.mousePos.y.int.closestTo(abs_tops)
+      result = some(Reorder(oldPos: ctx.inputs.draggingIdx, newPos: released_idx))
+    if ctx.mouseUp():
+      ctx.active = ""
+      ctx.inputs.draggingIdx = -1
+
   ctx.endContainer()
+
+  if ctx.isActive(label) and not ctx.mouseUp():
+    let
+      y = abs_tops[ctx.inputs.mousePos.y.int.closestTo(abs_tops)]
+      h = (padding.y / 2).int
+      w = (size.get().x / 3).int
+      x = (size.get().x / 2 - w / 2).int + pos.x.int
+    ctx.renderer.setDrawColor(white)
+    var marker = r(x, y, w, h)
+    ctx.renderer.fillRect(marker)
