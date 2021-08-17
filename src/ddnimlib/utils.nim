@@ -1,5 +1,5 @@
 import options, hashes
-from sdl2 import Rect, rect, getMouseState, Color
+from sdl2 import Rect, rect, getMouseState, Color, TexturePtr, queryTexture
 import linear
 
 func r*(x, y, w, h: int): Rect {.inline.} =
@@ -35,3 +35,8 @@ proc hash*(opt: Option): Hash =
   var h: Hash = 0
   if opt.isSome:
     h = hash(opt.get())
+
+func getSize*(tex: TexturePtr): Vec[2] =
+  var tw, th: cint
+  tex.queryTexture(nil, nil, addr tw, addr th)
+  vec(tw.int, th.int)

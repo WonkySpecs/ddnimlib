@@ -109,3 +109,9 @@ proc render*(view: View,
              rot = 0.0) =
   var dest = toScreenRect(pos, size, view.cam)
   view.renderer.copy(tr, dest)
+
+func getSize*(tr: TextureRegion): Vec[2] =
+  if tr.region.isSome:
+    tr.region.get().size()
+  else:
+    tr.tex.getSize()

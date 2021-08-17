@@ -16,6 +16,9 @@ type
   Interaction* = enum
     None, Clicked, Hovered
 
+  Reorder* = object
+    oldPos, newPos: int
+
   ID = string
 
   MouseButtonInput = object
@@ -25,6 +28,7 @@ type
   Inputs = object
     mousePos: Vec[2]
     leftClick: Option[MouseButtonInput]
+    draggingIdx: int
 
   RowLayout = ref object
     nextX, rowY, rowHeight, maxWidth, minItemWidth, width: float
@@ -338,12 +342,32 @@ proc doLabel*(ctx: var Context,
               pos=vec(0, 0)): Interaction =
   result = None
   var
-    tw, th: cint
     font = ctx.font(size)
     tex = font.getTextTexture(ctx.renderer, text, fg, bg)
-  discard tex.queryTexture(nil, nil, addr tw, addr th)
-  var
-    dest = ctx.elemDest(pos, vec(tw, th))
+    dest = ctx.elemDest(pos, tex.getSize())
     tr = texRegion(tex)
   ctx.draw(tr, dest)
   if ctx.mouseIn(dest): result = Hovered
+
+proc doReorderableIcons*(
+  ctx: var Context,
+  pos: Vec[2],
+  icons: openArray[TextureRegion],
+  fill: Color,
+  border=black,
+  borderWidth=2,
+  padding = vec(5, 5),
+  size = none(Vec[2])): Option[Reorder] =
+  ctx.startContainer(pos, fill, border, borderWidth, size, padding)
+  ctx.startLayout(padding)
+  for icon in icons:
+    var
+      dest = ctx.elemDest(pos, icon.getSize())
+      t = icon # Is this doing a copy?
+    ctx.draw(t, dest)
+    # Add highlight option
+    # If mouse down in dest, set inputs.draggingIdx and this is active
+  # If active and not mouse up, show new position hint
+  ctx.endLayout()
+  # If active and mouse up, if in container return a Reorder
+  ctx.endContainer()
