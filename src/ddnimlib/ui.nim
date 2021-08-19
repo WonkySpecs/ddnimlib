@@ -403,7 +403,7 @@ proc doReorderableIcons*(
 
   ctx.endContainer()
 
-  if ctx.isActive(label) and not ctx.mouseUp():
+  if ctx.mouseIn(container_rect) and ctx.isActive(label) and not ctx.mouseUp():
     let
       y = abs_tops[ctx.inputs.mousePos.y.int.closestTo(abs_tops)]
       h = (padding.y / 2).int
